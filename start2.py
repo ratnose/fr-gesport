@@ -58,11 +58,11 @@ if __name__ == '__main__':
 
     while questions > 0:    
         get_question = theGame.get_question(conn, questionslist[game])
-        print(get_question)
+        print(get_question[0])
 
         get_answers = theGame.get_answers(conn, questionslist[game])
-        for answer in get_answers:
-            print(answer)
-
+        for num, answer in enumerate(get_answers, start=1):
+            print("{} - {}".format(num, answer))
+        
         game += 1
         questions -= 1
