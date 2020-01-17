@@ -28,21 +28,41 @@ class Game:
         return question_list
 
     def get_question(self, conn, wantedquestion):
-        questionanswers = []
+        question = []
         cur = conn.cursor()
         cur.execute("SELECT * FROM questions WHERE id=?", (wantedquestion,))
-        question = cur.fetchone()[1]
-        questionanswers.append(question)
-        cur.execute("SELECT answer, correct_answer FROM answers WHERE question=?", (wantedquestion,))
-        answers = cur.fetchall()
-        questionanswers.append(answers)
-        return questionanswers
+        questionfetch = cur.fetchone()[1]
+        question.append(questionfetch)
+        
+        return question
+
+    def get_answers(self, conn, question):
+        send_answers = []
+        cur = conn.cursor()
+
+        cur.execute("SELECT answer FROM answers WHERE question=?", (question,))
+        send_answersfetch = cur.fetchall()
+        
+        for answer in send_answersfetch:
+            
+            send_answers.append(answer[0])
+
+        return send_answers
 
 if __name__ == '__main__':
     conn = create_connection(r"pythonsqlite.db")
-    questionair = Game()
-    questionslist = questionair.setup_questions()
-    get_question = questionair.get_question(conn, questionslist[0])
-    print(get_question[0])
-    
-    print(get_question[1][2])
+    theGame = Game()
+    questionslist = theGame.setup_questions() #Slumpmässig lista av det som finns i db
+    questions = len(questionslist) #Hur länge ska det hålla på?
+    game = 0
+
+    while questions > 0:    
+        get_question = theGame.get_question(conn, questionslist[game])
+        print(get_question)
+
+        get_answers = theGame.get_answers(conn, questionslist[game])
+        for answer in get_answers:
+            print(answer)
+
+        game += 1
+        questions -= 1
