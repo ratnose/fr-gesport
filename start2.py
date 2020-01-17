@@ -49,6 +49,15 @@ class Game:
 
         return send_answers
 
+    def checkAnswer(self, conn, question, answer):
+        cur = conn.cursor()
+        print("In value: {} - {}".format(question, answer))
+        cur.execute("SELECT correct_answer FROM answers WHERE question = ? AND id = ?", (question, answer,))
+        checked_answer = cur.fetchone()
+        print("db: {}".format(checked_answer))
+        
+        return checked_answer
+
 if __name__ == '__main__':
     conn = create_connection(r"pythonsqlite.db")
     theGame = Game()
@@ -58,11 +67,17 @@ if __name__ == '__main__':
 
     while questions > 0:    
         get_question = theGame.get_question(conn, questionslist[game])
-        print(get_question[0])
+        print("Frågor: {}".format(get_question[0]))
 
         get_answers = theGame.get_answers(conn, questionslist[game])
         for num, answer in enumerate(get_answers, start=1):
             print("{} - {}".format(num, answer))
-        
+
+        action = input("What is you answer? \n")
+        #Behöver frågams nummer... inte strängen... numret blir för högt?!
+        print(questionslist[game])
+        check_answer = theGame.checkAnswer(conn, questionslist[game], int(action))
+        print("-- {}".format(check_answer))
+
         game += 1
         questions -= 1
