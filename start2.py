@@ -1,4 +1,5 @@
 import sqlite3
+from sqlite3 import Error
 import random
 
 def create_connection(db_file):
@@ -15,69 +16,68 @@ def create_connection(db_file):
 
     return conn
 
-class Game:
-    def __init__(self):
-        self.stooopid=0
+class Questions:
 
-    def setup_questions(self):
+    def __init__(self):
+        #self.questions_order = setup_questions()
+
+    def setup_questions():
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) FROM questions")
         result = cur.fetchone()[0]
-        question_list = list(range(1,result+1))
-        random.shuffle(question_list)
-        return question_list
+        questions = [random.randrange(1, result, 1) for _ in range(result)]
+        print(questions)
+        #random.sample(xrange(1, result), result)
+        return questions
 
-    def get_question(self, conn, wantedquestion):
-        question = []
+    def get_question(self, conn, start_question):
         cur = conn.cursor()
-        cur.execute("SELECT * FROM questions WHERE id=?", (wantedquestion,))
-        questionfetch = cur.fetchone()[1]
-        question.append(questionfetch)
-        
-        return question
+        cur.execute("SELECT question FROM questions WHERE id=?", (start_question,))
+        result = cur.fetchone()[0]
+        return result
 
-    def get_answers(self, conn, question):
-        send_answers = []
+    def get_answers(self, conn, start_question):
         cur = conn.cursor()
+        cur.execute("SELECT * FROM answers WHERE question=?", (start_question,))
+        result = cur.fetchall()
+        return result
 
-        cur.execute("SELECT answer FROM answers WHERE question=?", (question,))
-        send_answersfetch = cur.fetchall()
-        
-        for answer in send_answersfetch:
-            
-            send_answers.append(answer[0])
-
-        return send_answers
-
-    def checkAnswer(self, conn, question, answer):
+    def answer_correct(self, conn, action):
+        print(action)
         cur = conn.cursor()
-        print("In value: {} - {}".format(question, answer))
-        cur.execute("SELECT correct_answer FROM answers WHERE question = ? AND id = ?", (question, answer,))
-        checked_answer = cur.fetchone()
-        print("db: {}".format(checked_answer))
-        
-        return checked_answer
+        print(action)
+        cur.execute("SELECT correct_answer FROM answers WHERE question=?", (action,))
+        result = cur.fetchone()
+        return result
+
 
 if __name__ == '__main__':
+    my_questionair = Questions()
+    questions_list = setup_questions()
     conn = create_connection(r"pythonsqlite.db")
-    theGame = Game()
-    questionslist = theGame.setup_questions() #Slumpmässig lista av det som finns i db
-    questions = len(questionslist) #Hur länge ska det hålla på?
-    game = 0
+    print("Lets [s]tart!")
+    while True:
+        action = input("What is you answer? \n").upper()
 
-    while questions > 0:    
-        get_question = theGame.get_question(conn, questionslist[game])
-        print("Frågor: {}".format(get_question[0]))
+        if action != '':
+            #Lets play
+            #start_question = my_questionair.get_first_question(conn)
+            if(action=='S'):
+                start_question = randint(1, result)
+            else:
+                next_question()
 
-        get_answers = theGame.get_answers(conn, questionslist[game])
-        for num, answer in enumerate(get_answers, start=1):
-            print("{} - {}".format(num, answer))
+            get_question = my_questionair.get_question(conn, start_question)
+            answers = my_questionair.get_answers(conn, start_question)
+            #print(first_question)
+            for count, answer in enumerate(answers, start=1):
+                print(count, answer[2])
 
-        action = input("What is you answer? \n")
-        #Behöver frågams nummer... inte strängen... numret blir för högt?!
-        print(questionslist[game])
-        check_answer = theGame.checkAnswer(conn, questionslist[game], int(action))
-        print("-- {}".format(check_answer))
-
-        game += 1
-        questions -= 1
+        if action not in ("1","2","3","4","5"):
+            print("Svara med siffra mellan 1 och 5")
+        else:
+            print(action, answers[int(action)])
+            if action != (answers[4]):
+                print("Du svarade fel!")
+            else:
+                print("Rätt")
